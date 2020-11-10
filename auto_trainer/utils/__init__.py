@@ -1,1 +1,1 @@
-from safe_wandb import *
+from .safe_wandb import *

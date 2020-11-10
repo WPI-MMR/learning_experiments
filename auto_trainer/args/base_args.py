@@ -9,23 +9,21 @@ ENTITY = "wpi-mmr"
 
 
 class BaseModelConfiguration:
-  def __init__(self, run_name: str, run_tags: List[str]):
+  def get_args_for_run(self, run_name: str, run_tags: List[str]):
     wandb = utils.safe_import_wandb()
 
     if wandb:
-      wandb.init(name=self._name,
+      wandb.init(name=run_name,
                  project=PROJECT_NAME,
                  entity=ENTITY,
-                 tags=self._tags,
-                 config=self.parse())
+                 tags=run_tags,
+                 config=self._parse())
       return wandb.config
     else:
       print('Not using wandb')
-      self.parse()
+      return self._parse()
 
-    return self.parse()
-
-  def parse(self):
+  def _parse(self):
     parser = argparse.ArgumentParser()
     parser = self._add_global_args(parser)
     parser = self.add_args(parser)
