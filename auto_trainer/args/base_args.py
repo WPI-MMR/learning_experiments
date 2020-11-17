@@ -17,7 +17,17 @@ class BaseModelConfiguration:
                  project=PROJECT_NAME,
                  entity=ENTITY,
                  tags=run_tags,
-                 config=self._parse())
+                 config=self._parse(),
+                 sync_tensorboard=True)
+
+      print("""
+      wandb.init(name=run_name,
+                 project=PROJECT_NAME,
+                 entity=ENTITY,
+                 tags=run_tags,
+                 config=self._parse(),
+                 sync_tensorboard=True)
+            """)
       return wandb.config
     else:
       print('Not using wandb')
