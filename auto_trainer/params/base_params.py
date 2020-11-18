@@ -8,7 +8,7 @@ PROJECT_NAME = "solo-rl-experiments"
 ENTITY = "wpi-mmr"
 
 
-class BaseModelConfiguration:
+class BaseParameters:
   def parse(self):
     parser = argparse.ArgumentParser()
     parser = self._add_global_args(parser)
