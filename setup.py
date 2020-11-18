@@ -7,7 +7,8 @@ setup(name='auto_trainer',
       python_requires='~=3.7',
       install_requires=[ 
         'stable-baselines', 
-        'jupytext'
+        'numpy<1.19.0,>=1.16.0',
+        'jupytext',
       ], 
       extras_require={
         'cpu': ['tensorflow>=1.15.0,<2'],
