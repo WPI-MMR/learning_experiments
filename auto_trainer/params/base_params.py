@@ -1,4 +1,4 @@
-from auto_trainer import utils
+from auto_trainer import trainer
 import argparse
 
 from typing import List
@@ -24,7 +24,7 @@ class BaseParameters:
                         help='which policy to train with')
     parser.add_argument('--algorithm', default='PPO2',
                         help='which algorithm to train on',
-                        choices=['PPO2', 'DRPO', 'TRPO'])
+                        choices=list(trainer.SUPPORTED_ALGORITHMS.keys()))
     return parser
 
   def add_args(self, parser: argparse.ArgumentParser):

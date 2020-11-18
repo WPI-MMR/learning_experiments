@@ -7,7 +7,6 @@ setup(name='auto_trainer',
       python_requires='~=3.7',
       install_requires=[ 
         'stable-baselines', 
-        'gym', 
         'jupytext'
       ], 
       extra_requires={
