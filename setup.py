@@ -1,7 +1,18 @@
-from setuptools import setup
+from pkg_resources import DistributionNotFound, get_distribution
+from setuptools import setup, find_packages    
 
 
-setup(name='auto_trainer',
+setup(name='auto_trainer', 
       version='0.0.1',
-      install_requires=['stable-baselines[mpi]', 'tensorflow-gpu'] 
+      python_requires='~=3.7',
+      install_requires=[ 
+        'stable-baselines', 
+        'gym', 
+        'jupytext'
+      ], 
+      extra_requires={
+        'cpu': ['tensorflow>=1.15.0,<2'],
+        'gpu': ['tensorflow-gpu>=1.15.0,<2'],
+        'wandb': ['wandb'],
+      }
 )
