@@ -9,31 +9,7 @@ ENTITY = "wpi-mmr"
 
 
 class BaseModelConfiguration:
-  def get_args_for_run(self, run_name: str, run_tags: List[str]):
-    wandb = utils.safe_import_wandb()
-
-    if wandb:
-      wandb.init(name=run_name,
-                 project=PROJECT_NAME,
-                 entity=ENTITY,
-                 tags=run_tags,
-                 config=self._parse(),
-                 sync_tensorboard=True)
-
-      print("""
-      wandb.init(name=run_name,
-                 project=PROJECT_NAME,
-                 entity=ENTITY,
-                 tags=run_tags,
-                 config=self._parse(),
-                 sync_tensorboard=True)
-            """)
-      return wandb.config
-    else:
-      print('Not using wandb')
-      return self._parse()
-
-  def _parse(self):
+  def parse(self):
     parser = argparse.ArgumentParser()
     parser = self._add_global_args(parser)
     parser = self.add_args(parser)
@@ -46,6 +22,9 @@ class BaseModelConfiguration:
                         help='number of episodes to train on')
     parser.add_argument('--policy', default='MlpPolicy',
                         help='which policy to train with')
+    parser.add_argument('--algorithm', default='PPO2',
+                        help='which algorithm to train on',
+                        choices=['PPO2', 'DRPO', 'TRPO'])
     return parser
 
   def add_args(self, parser: argparse.ArgumentParser):
