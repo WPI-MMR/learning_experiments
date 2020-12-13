@@ -1,1 +1,1 @@
-from .trainer import train
+from .trainer import train, get_synced_config

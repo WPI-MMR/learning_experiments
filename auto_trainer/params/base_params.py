@@ -20,6 +20,8 @@ class BaseParameters:
   def _add_global_args(self, parser: argparse.ArgumentParser):
     parser.add_argument('--episodes', default=10000,
                         help='number of episodes to train on')
+    parser.add_argument('--episode_length', default=100000,
+                        help='number of steps per episode')
     parser.add_argument('--policy', default='MlpPolicy',
                         help='which policy to train with')
     parser.add_argument('--algorithm', default='PPO2',
