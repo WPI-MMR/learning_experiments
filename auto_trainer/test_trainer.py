@@ -92,41 +92,45 @@ class TestAutoTrainer(unittest.TestCase):
       # digits long
       self.assertEqual(len(mock_save_args[0]), 10)
 
-  # def test_trainer_wandb(self, mock_wandb):
-  #   mock_wandb = mock.MagicMock()
-  #   sys.modules['wandb'] = mock_wandb
+  def test_trainer_wandb(self):
+    algo = 'test_ago'
+    policy = 'test_policy'
+    episodes = 69
 
-  #   trainer._WANDB = True
-  #   self.assertTrue(trainer._WANDB)
+    parameters = mock.MagicMock(algorithm=algo, policy=policy, 
+                                episodes=episodes)
+    mock_env = mock.MagicMock()
+    mock_run = mock.MagicMock(dir='test_dir')
 
-  #   algo = 'test_ago'
-  #   policy = 'test_policy'
-  #   episodes = 69
+    mock_learn = mock.MagicMock()
+    mock_save = mock.MagicMock()
+    mock_model = mock.MagicMock()
+    mock_model.learn = mock_learn
+    mock_model.save = mock_save
 
-  #   parameters = mock.MagicMock(algorithm=algo, policy=policy, 
-  #                               episodes=episodes)
-  #   mock_env = mock.MagicMock()
-  #   mock_run = mock.MagicMock(dir='test_dir')
+    mock_model_cls = mock.MagicMock()
+    mock_model_cls.return_value = mock_model
 
-  #   mock_learn = mock.MagicMock()
-  #   mock_save = mock.MagicMock()
-  #   mock_model = mock.MagicMock()
-  #   mock_model.learn = mock_learn
-  #   mock_model.save = mock_save
+    mock_wandb = mock.MagicMock()
+    if 'wandb' in sys.modules: 
+      import wandb
+      del wandb
+    with mock.patch.dict('sys.modules', {'wandb': mock_wandb}):
+      importlib.reload(trainer)
 
-  #   mock_model_cls = mock.MagicMock()
-  #   mock_model_cls.return_value = mock_model
+      trainer._WANDB = True
+      self.assertTrue(trainer._WANDB)
+    
+      with mock.patch.dict(trainer.SUPPORTED_ALGORITHMS, 
+                          {algo: mock_model_cls}, clear=True):
+        model, config, run = trainer.train(mock_env, parameters, None, 
+                                          run=mock_run)
 
-  #   with mock.patch.dict(trainer.SUPPORTED_ALGORITHMS, 
-  #                        {algo: mock_model_cls}, clear=True):
-  #     model, config, run = trainer.train(mock_env, parameters, None, 
-  #                                        run=mock_run)
+    _, kwargs = mock_model_cls.call_args
+    self.assertEqual(kwargs['tensorboard_log'], mock_run.dir)
 
-  #     _, kwargs = mock_model_cls.call_args
-  #     self.assertEqual(kwargs['tensorboard_log'], mock_run.dir)
-
-  #     args, _ = mock_save.call_args
-  #     self.assertEqual(args[0], '{}/model'.format(mock_run.dir))
+    args, _ = mock_save.call_args
+    self.assertEqual(args[0], '{}/model'.format(mock_run.dir))
 
 
 if __name__ == '__main__':
