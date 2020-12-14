@@ -21,9 +21,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade wheel pip
+        python -m pip install --upgrade wheel setuptools pip
         python -m pip install coverage coveralls
-        python -m pip install -e . 
+        python -m pip install -e .[cpu]
     - name: Run tests
       run: |
         python -m unittest discover -v
