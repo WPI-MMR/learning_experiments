@@ -67,7 +67,7 @@ def train(env, parameters, tags, full_logging=True, log_freq=100, run=None):
                     verbose=1)
 
   if _WANDB: wandb.tensorboard.monkeypatch._notify_tensorboard_logdir(
-      os.path.join(run.dir, '{}_1'.format(_DEFAULT_RUN_NAME)))
+    os.path.join(run.dir, '{}_1'.format(_DEFAULT_RUN_NAME)))
 
   model.learn(config.episodes, tb_log_name=_DEFAULT_RUN_NAME,
               log_interval=log_freq)
