@@ -78,8 +78,42 @@ class TestAutoTrainer(unittest.TestCase):
 
       # If not using wandb, should save in 2-digit reps of 
       # MonthDayHourMinSec; henceforth, the length of the run name should be 10 
-      # digits # long
+      # digits long
       self.assertEqual(len(mock_save_args[0]), 10)
+
+  @mock.patch('wandb.tensorboard.monkeypatch._notify_tensorboard_logdir')
+  def test_trainer_wandb(self, mock_wandb):
+    trainer._WANDB = True
+    self.assertTrue(trainer._WANDB)
+
+    algo = 'test_ago'
+    policy = 'test_policy'
+    episodes = 69
+
+    parameters = mock.MagicMock(algorithm=algo, policy=policy, 
+                                episodes=episodes)
+    mock_env = mock.MagicMock()
+    mock_run = mock.MagicMock(dir='test_dir')
+
+    mock_learn = mock.MagicMock()
+    mock_save = mock.MagicMock()
+    mock_model = mock.MagicMock()
+    mock_model.learn = mock_learn
+    mock_model.save = mock_save
+
+    mock_model_cls = mock.MagicMock()
+    mock_model_cls.return_value = mock_model
+
+    with mock.patch.dict(trainer.SUPPORTED_ALGORITHMS, 
+                         {algo: mock_model_cls}, clear=True):
+      model, config, run = trainer.train(mock_env, parameters, None, 
+                                         run=mock_run)
+
+      _, kwargs = mock_model_cls.call_args
+      self.assertEqual(kwargs['tensorboard_log'], mock_run.dir)
+
+      args, _ = mock_save.call_args
+      self.assertEqual(args[0], '{}/model'.format(mock_run.dir))
 
 
 if __name__ == '__main__':
