@@ -7,7 +7,6 @@ import glob
 import pathlib
 import re
 import subprocess
-import sys
 import tempfile
 
 
