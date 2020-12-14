@@ -6,6 +6,7 @@ import os
 
 PROJECT_NAME = 'solo-rl-experiments'
 ENTITY = 'wpi-mmr'
+_DEFAULT_RUN_NAME = 'run'
 
 SUPPORTED_ALGORITHMS = {
   'PPO2': stable_baselines.PPO2,
