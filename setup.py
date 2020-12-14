@@ -9,6 +9,7 @@ setup(name='auto_trainer',
         'stable-baselines', 
         'numpy<1.19.0,>=1.16.0',
         'jupytext',
+        'gym'
       ], 
       extras_require={
         'cpu': ['tensorflow>=1.15.0,<2'],

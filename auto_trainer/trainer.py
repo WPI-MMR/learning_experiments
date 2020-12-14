@@ -1,9 +1,11 @@
 from typing import List, Text
 
 from datetime import datetime
-import stable_baselines
+
+import gym
 import logging
 import os
+import stable_baselines
 
 
 PROJECT_NAME = 'solo-rl-experiments'
@@ -54,7 +56,27 @@ def get_synced_config(parameters, tags: List[Text]):
   return config, run
   
 
-def train(env, parameters, tags, full_logging=True, log_freq=100, run=None):
+def train(env: gym.Env, parameters, tags: List[Text], 
+          full_logging: bool = False, log_freq: int = 100, run = None):
+  """Train a model.
+
+  Args:
+    env (gym.Env): Gym environment to train on.
+    parameters (Any W&B supported type): The hyperparameters to train with.
+      Refer to W&B for all of the support types.
+    tags (List[Text]): List of tags that describe this run. Doesn't do anything
+      if `run` is not None.
+    full_logging (bool, optional): Whether or not to log *everything*. Can fill
+      up space quick. Defaults to True.
+    log_freq (int, optional): How many steps to write the logs. Defaults to 100.
+    run ([wandb.Run], optional): A current W&B run. Use this if you want to
+      reuse a current run, i.e. train a model, do things to it, and continue
+      training it. If this is None, a new run will be created via
+      `get_synced_config`. Defaults to None.
+
+  Returns:
+    [type]: [description]
+  """
   if run:
     config = parameters
   else: 
