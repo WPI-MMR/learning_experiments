@@ -3,9 +3,6 @@ import unittest
 from auto_trainer import trainer
 from unittest import mock
 
-from wandb.integration.sagemaker import config
-from wandb.trigger import call
-
 
 class TestAutoTrainer(unittest.TestCase):
   def test_synced_config_no_wandb(self):
@@ -80,8 +77,8 @@ class TestAutoTrainer(unittest.TestCase):
       mock_save_args, _ = mock_save.call_args
 
       # If not using wandb, should save in 2-digit reps of 
-      # MonthDayHourMinSec, so the length of the run name should be 10 digits
-      # long
+      # MonthDayHourMinSec; henceforth, the length of the run name should be 10 
+      # digits # long
       self.assertEqual(len(mock_save_args[0]), 10)
 
 
