@@ -12,9 +12,6 @@ SUPPORTED_ALGORITHMS = {
 }
 
 
-_DEFAULT_RUN_NAME = 'run'
-
-
 try:
   import wandb
   _WANDB = True
