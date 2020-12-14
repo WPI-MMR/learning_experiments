@@ -1,3 +1,5 @@
+from typing import List, Text
+
 from datetime import datetime
 import stable_baselines
 import logging
@@ -21,7 +23,22 @@ except ImportError:
   _WANDB = False
 
 
-def get_synced_config(parameters, tags):
+def get_synced_config(parameters, tags: List[Text]):
+  """Sync the config with wandb (if necessary) and return the new config
+
+  Args:
+    parameters (Any W&B supported type): The current hyperparameters to use. If
+      W&B is enabled and is actively making making a sweep, these 
+      hyperparameters will get updated to W&B's sweep. This can be any type
+      supported by W&B, including Dicts and argparse.Namespace objects.
+    tags (List[Text]): Tags that describe the run. Note that this is basically
+      useless if W&B is disabled.
+
+  Returns:
+    The (hyperparameter config, W&B run object). Obviously, if W&B is disabled,
+    then the run object will be None and the hyperparameter config will be what
+    was passed in. 
+  """
   if not _WANDB:
     return parameters, None
 
