@@ -44,6 +44,8 @@ def get_synced_config(parameters, tags: List[Text]):
   if not _WANDB:
     return parameters, None
 
+  print('here')
+  print(wandb)
   run = wandb.init(
     project=PROJECT_NAME,
     entity=ENTITY,
