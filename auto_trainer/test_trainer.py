@@ -4,6 +4,7 @@ from auto_trainer import trainer
 from unittest import mock
 
 from wandb.integration.sagemaker import config
+from wandb.trigger import call
 
 
 class TestAutoTrainer(unittest.TestCase):
@@ -30,7 +31,11 @@ class TestAutoTrainer(unittest.TestCase):
     self.assertTrue(trainer._WANDB)
     
     config, run = trainer.get_synced_config(param, tags)
+    mock_wandb.assert_called_once()
 
+    _, kwargs = mock_wandb.call_args
+    self.assertDictEqual(kwargs['config'], param)
+    self.assertListEqual(kwargs['tags'], tags)
     self.assertDictEqual(config, param)
     self.assertEqual(run, mock_run)
 
