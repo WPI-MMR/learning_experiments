@@ -13,7 +13,7 @@ setup(name='auto_trainer',
       ], 
       extras_require={
         'cpu': ['tensorflow>=1.15.0,<2'],
-        'gpu': ['tensorflow-gpu>=1.15.0,<2'],
+        'gpu': ['tensorflow-gpu=1.15.4'],
         'wandb': ['wandb'],
       }
 )
