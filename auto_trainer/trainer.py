@@ -30,9 +30,9 @@ def get_synced_config(parameters, tags: List[Text]):
 
   Args:
     parameters (Any W&B supported type): The current hyperparameters to use. If
-      W&B is enabled and is actively making making a sweep, these 
-      hyperparameters will get updated to W&B's sweep. This can be any type
-      supported by W&B, including Dicts and argparse.Namespace objects.
+      W&B is enabled and is actively making a sweep, these hyperparameters will 
+      get updated to W&B's sweep. This can be any type supported by W&B, 
+      including Dicts and argparse.Namespace objects.
     tags (List[Text]): Tags that describe the run. Note that this is basically
       useless if W&B is disabled.
 
