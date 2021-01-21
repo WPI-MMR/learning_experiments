@@ -17,10 +17,20 @@
 # Only use the time-based stopping criteria. This is more of a rudamentary test more than anything.
 
 # %% [markdown]
+# ## Ensure that Tensorflow is using the GPU
+
+# %%
+import tensorflow as tf
+if tf.test.gpu_device_name():
+    print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))
+else:
+    print("Please install GPU version of TF")
+
+# %% [markdown]
 # ## Define Experiment Tags
 
 # %%
-TAGS = ['solov2vanilla', 'gpu']
+TAGS = ['solov2vanilla', 'gpu', 'home_pos_task']
 
 # %% [markdown]
 # ## Get Solo Environment Configuration
@@ -59,8 +69,8 @@ import auto_trainer
 # %%
 config = params.BaseParameters().parse()
 
-config.episodes = 50000
-config.episode_length = 60 / env_config.dt
+config.episodes = 500000
+config.episode_length = 10 / env_config.dt
 
 config, run = auto_trainer.get_synced_config(config, TAGS)
 config
@@ -85,7 +95,8 @@ env = gym.make('solo8vanilla-v0', config=env_config)
 env.obs_factory.register_observation(obs.TorsoIMU(env.robot))
 env.obs_factory.register_observation(obs.MotorEncoder(env.robot))
 
-env.reward_factory.register_reward(1, rewards.UprightReward(env.robot))
+# env.reward_factory.register_reward(1, rewards.UprightReward(env.robot))
+env.reward_factory.register_reward(1, rewards.HomePositionReward(env.robot))
 
 env.termination_factory.register_termination(terms.TimeBasedTermination(config.episode_length))
 
@@ -95,11 +106,3 @@ env.termination_factory.register_termination(terms.TimeBasedTermination(config.e
 # %%
 model, config, run = auto_trainer.train(env, config, TAGS, log_freq=500, 
                                         full_logging=False, run=run)
-
-# %%
-import pandas
-from pympler import muppy, summary
-all_objects = muppy.get_objects()
-sum1 = summary.summarize(all_objects)
-# Prints out a summary of the large objects
-summary.print_(sum1)
