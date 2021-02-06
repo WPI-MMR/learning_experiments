@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.9.1
+#       jupytext_version: 1.10.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -72,6 +72,8 @@ config = params.BaseParameters().parse()
 config.episodes = 10
 # config.episode_length = 10 / env_config.dt
 config.episode_length = 1000
+config.eval_episodes = 3
+config.eval_freq = 200
 
 # auto_trainer.trainer._WANDB=False
 config, run = auto_trainer.get_synced_config(config, TAGS)
@@ -118,9 +120,19 @@ def make_env(length):
 # %%
 from stable_baselines.common.vec_env import SubprocVecEnv
 
-NUM_WORKERS = 4
+NUM_WORKERS = 1
 env = SubprocVecEnv([make_env(config.episode_length) for _ in range(NUM_WORKERS)])
 env
+
+# %%
+imgs = env.get_images()
+
+# %%
+import matplotlib.pyplot as plt
+
+# %%
+
+# %%
 
 # %% [markdown]
 # Train on the vectorized environment instead
@@ -131,3 +143,5 @@ model, config, run = auto_trainer.train(env, config, TAGS, log_freq=100,
 
 # %%
 model
+
+# %%

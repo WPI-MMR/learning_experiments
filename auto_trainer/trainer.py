@@ -1,6 +1,7 @@
 from typing import List, Text
 
 from datetime import datetime
+from stable_baselines.common import callbacks as sb_cb
 
 import gym
 import logging
@@ -86,18 +87,29 @@ def train(env: gym.Env, parameters, tags: List[Text],
                     full_tensorboard_log=full_logging,
                     verbose=1)
 
+  callbacks = []
   if _WANDB: 
+    from auto_trainer.callbacks import wandb as wb_cb
     default_run_name = config.algorithm
-
     wandb.tensorboard.patch(
       save=True, 
       root_logdir=os.path.join(run.dir, '{}_1'.format(default_run_name)))
+
+    render_cb_raw = wb_cb.WandbEvalAndRecord(env, config.eval_episodes)
+    # render_cb = sb_cb.EveryNTimesteps(
+    #   n_steps=config.eval_freq * config.episode_length, callback=render_cb_raw)
+    render_cb = sb_cb.EveryNTimesteps(
+      n_steps=config.eval_freq, callback=render_cb_raw)
+
+    callbacks.append(render_cb)
+
   else:
     default_run_name = datetime.now().strftime('{}-%m%d%H%M%S'.format(
       config.algorithm))
 
   model.learn(total_timesteps=int(config.episodes * config.episode_length), 
-              tb_log_name=default_run_name, log_interval=log_freq)
+              tb_log_name=default_run_name, log_interval=log_freq,
+              callback=callbacks)
   model.save(_WANDB and os.path.join(run.dir, 'model') or \
     datetime.now().strftime('%m%d%H%M%S'))
 
