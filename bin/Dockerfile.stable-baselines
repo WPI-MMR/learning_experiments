@@ -10,7 +10,7 @@ RUN mkdir /sources && cd /sources \
     && git clone https://github.com/WPI-MMR/learning_experiments.git \
     && python3.7 -m pip install -U pip wheel setuptools \
     && python3.7 -m pip install -e gym_solo/ \
-    && python3.7 -m pip install -e learning_experiments[gpu,wandb] \
+    && python3.7 -m pip install -e learning_experiments[gpu,wandb,mpi] \
     && python3.7 -m pip install jupyterlab
 
 WORKDIR /sources/learning_experiments/experiments
