@@ -54,9 +54,10 @@ class TestAutoTrainer(unittest.TestCase):
     algo = 'test_ago'
     policy = 'test_policy'
     episodes = 69
+    epi_length = 10
 
     parameters = mock.MagicMock(algorithm=algo, policy=policy, 
-                                episodes=episodes)
+                                episodes=episodes, episode_length=epi_length)
     fake_env = mock.MagicMock()
 
     mock_learn = mock.MagicMock()
@@ -81,8 +82,9 @@ class TestAutoTrainer(unittest.TestCase):
       self.assertTupleEqual(args, (policy, fake_env))
 
       mock_learn.assert_called_once()
-      mock_learn_args, _ = mock_learn.call_args
-      self.assertTupleEqual(mock_learn_args, (episodes, ))
+      _, mock_learn_kwargs = mock_learn.call_args
+      self.assertEqual(mock_learn_kwargs['total_timesteps'], 
+                       episodes * epi_length)
 
       mock_save.assert_called_once()
       mock_save_args, _ = mock_save.call_args
