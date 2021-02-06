@@ -13,8 +13,8 @@
 # ---
 
 # %% [markdown]
-# # PPO2 on Solo8 v2 Vanilla w/ Fixed Timestamp
-# Only use the time-based stopping criteria. This is more of a rudamentary test more than anything.
+# # PPO2 on Solo8 v2 Vanilla w/ Fixed Timestamp & Vectorized Environments
+# Vectorized environment test
 
 # %% [markdown]
 # ## Ensure that Tensorflow is using the GPU
@@ -69,11 +69,14 @@ import auto_trainer
 # %%
 config = params.BaseParameters().parse()
 
-config.episodes = 750000
-config.episode_length = 10 / env_config.dt
+config.episodes = 10
+# config.episode_length = 10 / env_config.dt
+config.episode_length = 1000
 
+# auto_trainer.trainer._WANDB=False
 config, run = auto_trainer.get_synced_config(config, TAGS)
 config
+
 
 # %% [markdown]
 # ## Setup Environment
@@ -90,21 +93,41 @@ config
 # - Terminate after $n$ timesteps
 
 # %%
-env = gym.make('solo8vanilla-v0', config=env_config)
+def make_env(length):
+    def _init():
+        env = gym.make('solo8vanilla-v0', config=env_config)
 
-env.obs_factory.register_observation(obs.TorsoIMU(env.robot))
-env.obs_factory.register_observation(obs.MotorEncoder(env.robot))
+        env.obs_factory.register_observation(obs.TorsoIMU(env.robot))
+        env.obs_factory.register_observation(obs.MotorEncoder(env.robot))
 
-# env.reward_factory.register_reward(1, rewards.UprightReward(env.robot))
-env.reward_factory.register_reward(1, rewards.HomePositionReward(env.robot))
+        # env.reward_factory.register_reward(1, rewards.UprightReward(env.robot))
+        env.reward_factory.register_reward(1, rewards.HomePositionReward(env.robot))
 
-env.termination_factory.register_termination(terms.TimeBasedTermination(config.episode_length))
+        env.termination_factory.register_termination(terms.TimeBasedTermination(length))
+        
+        return env
+    return _init
+
 
 # %% [markdown]
 # ## Learning
+
+# %% [markdown]
+# Hand-vectorize the environment. Note that this should be abstracted out into its own utility method eventually.
+
+# %%
+from stable_baselines.common.vec_env import SubprocVecEnv
+
+NUM_WORKERS = 4
+env = SubprocVecEnv([make_env(config.episode_length) for _ in range(NUM_WORKERS)])
+env
+
+# %% [markdown]
+# Train on the vectorized environment instead
 
 # %%
 model, config, run = auto_trainer.train(env, config, TAGS, log_freq=100,
                                         full_logging=False, run=run)
 
 # %%
+model
