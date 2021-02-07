@@ -72,7 +72,7 @@ class WandbRecordRollouts(callbacks.BaseCallback):
   This callback is useful because the majority of the recorded information
   is patched in from Tensorboard. This is fine, but with multi-processed
   environments, this causes a discrepency with the renderings and the 
-  Tensoboard values.
+  Tensorboard values.
   
   This creates a new standard x-axis called "rollouts" so that everything
   is called properly. Note that according to PPO2, rollouts should be the same

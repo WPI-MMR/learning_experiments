@@ -2,9 +2,17 @@ import unittest
 
 from unittest import mock
 
+import importlib
+import sys
+
 
 class TestWandbEvalAndRecord(unittest.TestCase):
   def setUp(self):
+    # TODO: Create a parent test case that encompasses this W&B mocking logic
+    if 'wandb' in sys.modules:
+      import wandb
+      del wandb
+
     self.mock_env = mock.MagicMock()
     self.eval_episodes = 10
     self.render_freq = 2
@@ -12,8 +20,10 @@ class TestWandbEvalAndRecord(unittest.TestCase):
     self.wandb = mock.MagicMock()
 
     with mock.patch.dict('sys.modules', {'wandb': self.wandb}):
-      from auto_trainer.callbacks import wandb as wandb_cb
-      self.cb = wandb_cb.WandbEvalAndRecord(
+      import auto_trainer.callbacks.wandb 
+      importlib.reload(auto_trainer.callbacks.wandb)
+
+      self.cb = auto_trainer.callbacks.wandb.WandbEvalAndRecord(
         self.mock_env, self.eval_episodes, self.render_freq, self.fps)
 
   @mock.patch('numpy.transpose')
@@ -43,6 +53,44 @@ class TestWandbEvalAndRecord(unittest.TestCase):
     self.assertEqual(log['test_reward_mean'], mean_reward)
     self.assertEqual(log['test_reward_std'], std_reward)
 
+    print(self.wandb)
+
+
+class TestWandbRolloutsCallback(unittest.TestCase):
+  def setUp(self):
+    if 'wandb' in sys.modules:
+      import wandb
+      del wandb
+
+    self.wandb = mock.MagicMock()
+
+    with mock.patch.dict('sys.modules', {'wandb': self.wandb}):
+      import auto_trainer.callbacks.wandb
+      importlib.reload(auto_trainer.callbacks.wandb)
+
+      self.cb = auto_trainer.callbacks.wandb.WandbRecordRollouts()
+
+  def test_step_vs_rollout(self):
+    self.assertEqual(self.cb.rollouts, 0)
+    for _ in range(100):
+      self.cb._on_step()
+      self.cb.num_timesteps += 1
+
+    self.assertEqual(self.cb.rollouts, 0)
+    self.assertEqual(self.cb.num_timesteps, 100)
+
+    for _ in range(10):
+      self.cb.on_rollout_start()
+      self.cb.on_rollout_end()
+    self.assertEqual(self.cb.rollouts, 10)
+
+    calls = self.wandb.log.call_args_list
+    self.assertEqual(len(calls), 10)
+
+    for i, (args, kwargs) in enumerate(calls):
+      self.assertDictEqual(args[0], {'rollouts': i + 1})
+      self.assertDictEqual(kwargs, {'step': 100})
+      
 
 if __name__ == '__main__':
   pass
