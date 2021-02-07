@@ -2,6 +2,7 @@ from typing import List, Text
 
 from datetime import datetime
 from stable_baselines.common import callbacks as sb_cb
+from stable_baselines.common.vec_env import VecEnv
 
 import gym
 import logging
@@ -55,12 +56,13 @@ def get_synced_config(parameters, tags: List[Text]):
   return config, run
   
 
-def train(env: gym.Env, parameters, tags: List[Text], 
+def train(env: VecEnv, eval_env: gym.Env, parameters, tags: List[Text], 
           full_logging: bool = False, log_freq: int = 100, run = None):
   """Train a model.
 
   Args:
-    env (gym.Env): Gym environment to train on.
+    env (VecEnv): Vectorized gym environment to train on.
+    eval_env (gym.Env): Gym environment to evaluate upon.
     parameters (Any W&B supported type): The hyperparameters to train with.
       Refer to W&B for all of the support types.
     tags (List[Text]): List of tags that describe this run. Doesn't do anything
@@ -74,7 +76,7 @@ def train(env: gym.Env, parameters, tags: List[Text],
       `get_synced_config`. Defaults to None.
 
   Returns:
-    [type]: [description]
+    The model, configuration used, and the wandb run object (if applicable)
   """
   if run:
     config = parameters
@@ -95,11 +97,11 @@ def train(env: gym.Env, parameters, tags: List[Text],
       save=True, 
       root_logdir=os.path.join(run.dir, '{}_1'.format(default_run_name)))
 
-    render_cb_raw = wb_cb.WandbEvalAndRecord(env, config.eval_episodes)
-    # render_cb = sb_cb.EveryNTimesteps(
-    #   n_steps=config.eval_freq * config.episode_length, callback=render_cb_raw)
+    render_cb_raw = wb_cb.WandbEvalAndRecord(
+      eval_env, config.eval_episodes, config.eval_render_freq, config.fps)
     render_cb = sb_cb.EveryNTimesteps(
-      n_steps=config.eval_freq, callback=render_cb_raw)
+      n_steps=config.eval_frequency * config.episode_length, 
+      callback=render_cb_raw)
 
     callbacks.append(render_cb)
 
