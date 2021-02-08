@@ -97,13 +97,13 @@ def train(env: VecEnv, eval_env: gym.Env, parameters, tags: List[Text],
       save=True, 
       root_logdir=os.path.join(run.dir, '{}_1'.format(default_run_name)))
 
-    render_cb_raw = wb_cb.WandbEvalAndRecord(
+    eval_cb_raw = wb_cb.WandbEvalAndRecord(
       eval_env, config.eval_episodes, config.eval_render_freq, config.fps)
-    render_cb = sb_cb.EveryNTimesteps(
+    eval_cb = sb_cb.EveryNTimesteps(
       n_steps=config.eval_frequency * config.episode_length, 
-      callback=render_cb_raw)
+      callback=eval_cb_raw)
 
-    callbacks.append(render_cb)
+    callbacks.append(eval_cb)
 
   else:
     default_run_name = datetime.now().strftime('{}-%m%d%H%M%S'.format(

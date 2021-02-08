@@ -60,30 +60,9 @@ class WandbEvalAndRecord(callbacks.BaseCallback):
     wandb.log({
       'test_reward_mean': mean_rewards, 
       'test_reward_std': std_rewards,
-      'render': wandb.Video(render, format='gif', fps=self.fps)
-    }, step=self.num_timesteps)
+      'render': wandb.Video(render, format='gif', fps=self.fps),
+      'global_step': self.num_timesteps,
+      'evaluations': self.n_calls,
+    })
 
     return True
-
-
-class WandbRecordRollouts(callbacks.BaseCallback):
-  """A simple callback to record the number of rollouts.
-  
-  This callback is useful because the majority of the recorded information
-  is patched in from Tensorboard. This is fine, but with multi-processed
-  environments, this causes a discrepency with the renderings and the 
-  Tensorboard values.
-  
-  This creates a new standard x-axis called "rollouts" so that everything
-  is called properly. Note that according to PPO2, rollouts should be the same
-  as an episode or a trajectory.
-  """
-  def __init__(self, verbose: int = 0):
-    super().__init__(verbose=verbose)
-    self.rollouts = 0
-    
-  def _on_rollout_end(self) -> None:
-    """Log the number of rollouts with the current timesteps
-    """
-    self.rollouts += 1
-    wandb.log({'rollouts': self.rollouts}, step=self.num_timesteps)
