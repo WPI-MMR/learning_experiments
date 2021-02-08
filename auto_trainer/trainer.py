@@ -1,4 +1,4 @@
-from typing import List, Text
+from typing import Any, Callable, List, Text
 
 from datetime import datetime
 from stable_baselines.common import callbacks as sb_cb
@@ -56,7 +56,7 @@ def get_synced_config(parameters, tags: List[Text]):
   return config, run
   
 
-def train(env: VecEnv, eval_env: gym.Env, parameters, tags: List[Text], 
+def train(env: VecEnv, eval_env: gym.Env, parameters, tags: List[Text],
           full_logging: bool = False, log_freq: int = 100, run = None):
   """Train a model.
 

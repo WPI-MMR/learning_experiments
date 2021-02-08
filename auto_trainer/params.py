@@ -25,6 +25,8 @@ class BaseParameters:
     parser.add_argument('--algorithm', default='PPO2',
                         help='which algorithm to train on',
                         choices=list(trainer.SUPPORTED_ALGORITHMS.keys()))
+    parser.add_argument('--num_workers', default=1,
+                        help='how many parallel environments to use')
     return parser
 
 

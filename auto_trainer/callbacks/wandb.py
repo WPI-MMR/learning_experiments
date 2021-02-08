@@ -63,6 +63,6 @@ class WandbEvalAndRecord(callbacks.BaseCallback):
       'render': wandb.Video(render, format='gif', fps=self.fps),
       'global_step': self.num_timesteps,
       'evaluations': self.n_calls,
-    })
+    }, step=self.num_timesteps)
 
     return True
