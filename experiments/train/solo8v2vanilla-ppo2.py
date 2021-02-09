@@ -30,7 +30,8 @@ else:
 # ## Define Experiment Tags
 
 # %%
-TAGS = ['solov2vanilla', 'gpu', 'standing_task']
+TAGS = ['solov2vanilla', 'gpu', 'home_pos_task', 
+        'unnormalized_actions']
 
 # %% [markdown]
 # # Import required libraries
@@ -58,7 +59,7 @@ import auto_trainer
 # Give the robot a total of 10 seconds simulation time to learn how to stand.
 
 # %%
-episode_length = 10 / solo8v2vanilla.Solo8VanillaConfig.dt
+episode_length = 2 / solo8v2vanilla.Solo8VanillaConfig.dt
 episode_length
 
 # %% [markdown]
@@ -110,12 +111,14 @@ config
 def make_env(length):
     def _init():
         env_config = solo8v2vanilla.Solo8VanillaConfig()
-        env = gym.make('solo8vanilla-v0', config=env_config)
+        env = gym.make('solo8vanilla-v0', config=env_config, 
+                       normalize_actions=False)
 
         env.obs_factory.register_observation(obs.TorsoIMU(env.robot))
         env.obs_factory.register_observation(obs.MotorEncoder(env.robot))
 
-        env.reward_factory.register_reward(1, rewards.UprightReward(env.robot))
+        # env.reward_factory.register_reward(1, rewards.UprightReward(env.robot))
+        env.reward_factory.register_reward(1, rewards.HomePositionReward(env.robot))
         env.termination_factory.register_termination(terms.TimeBasedTermination(length))
         return env
     return _init
@@ -127,6 +130,7 @@ def make_env(length):
 
 # %%
 from stable_baselines.common.vec_env import SubprocVecEnv
+from stable_baselines.common.vec_env import VecNormalize
 
 # %% [markdown]
 # Create training & testing environments
@@ -134,6 +138,8 @@ from stable_baselines.common.vec_env import SubprocVecEnv
 # %%
 train_env = SubprocVecEnv([make_env(config.episode_length) 
                            for _ in range(config.num_workers)])
+# train_env = VecNormalize(train_env, clip_reward = 1.)
+
 test_env = make_env(config.episode_length)()
 
 # %% [markdown]

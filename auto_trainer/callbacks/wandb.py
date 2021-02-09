@@ -43,6 +43,8 @@ class WandbEvalAndRecord(callbacks.BaseCallback):
       self.model, self.env, n_eval_episodes=self.eval_episodes)
     
     images = []
+    rewards = []
+    actions = []
     step_cnt = 0
     done, state = False, None
     obs = self.env.reset()
@@ -51,11 +53,17 @@ class WandbEvalAndRecord(callbacks.BaseCallback):
         images.append(self.env.render())
 
       action, state = self.model.predict(obs, state=state, deterministic=True)
-      obs, _, done, _ = self.env.step(action)
+      obs, reward, done, _ = self.env.step(action)
+
+      rewards.append(reward)
+      actions.append(action)
       step_cnt += 1
 
     render = np.array(images)
     render = np.transpose(render, (0, 3, 1, 2))
+
+    rewards = np.array(rewards)
+    actions = np.array(actions).flatten()
 
     wandb.log({
       'test_reward_mean': mean_rewards, 
@@ -63,6 +71,8 @@ class WandbEvalAndRecord(callbacks.BaseCallback):
       'render': wandb.Video(render, format='gif', fps=self.fps),
       'global_step': self.num_timesteps,
       'evaluations': self.n_calls,
+      'reward_distribution': wandb.Histogram(rewards),
+      'action_distribution': wandb.Histogram(actions)
     }, step=self.num_timesteps)
 
     return True
