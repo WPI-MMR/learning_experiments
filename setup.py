@@ -15,6 +15,7 @@ setup(name='auto_trainer',
         'cpu': ['tensorflow>=1.15.0,<2'],
         'gpu': ['tensorflow-gpu==1.15.4'],
         'wandb': ['wandb', 'moviepy', 'imageio'],
-        'mpi': ['stable-baselines[mpi]']
+        'mpi': ['stable-baselines[mpi]'],
+        'gym': ['pyvirtualdisplay', 'PyOpenGL', 'PyOpenGL-accelerate']
       }
 )
