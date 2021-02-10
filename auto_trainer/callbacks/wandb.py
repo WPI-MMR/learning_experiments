@@ -50,7 +50,7 @@ class WandbEvalAndRecord(callbacks.BaseCallback):
     obs = self.env.reset()
     while not done:
       if step_cnt % self.render_freq == 0:
-        images.append(self.env.render())
+        images.append(self.env.render(mode='rgb_array'))
 
       action, state = self.model.predict(obs, state=state, deterministic=True)
       obs, reward, done, _ = self.env.step(action)

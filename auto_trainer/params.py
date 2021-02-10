@@ -1,7 +1,8 @@
 from auto_trainer import trainer
-import argparse
-
 from typing import List
+
+import numpy as np
+import argparse
 
 
 PROJECT_NAME = "solo-rl-experiments"
@@ -43,5 +44,14 @@ class WandbParameters(BaseParameters):
                         'steps should a render be taken of the env')
     parser.add_argument('--fps', default=10, help='fps to render the sim '
                                                   'images')
+
+    return parser
+
+class WandbConfigurableEnvParameters(WandbParameters):
+  def add_args(self, parser: argparse.ArgumentParser):
+    parser = super().add_args(parser)
+
+    parser.add_argument('--max_motor_rotation', default=2 * np.pi,
+                        help='maximum motor rotation')
 
     return parser
