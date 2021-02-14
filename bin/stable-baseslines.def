@@ -1,14 +1,42 @@
 Bootstrap: docker
 From: nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
 
+%environment
+    export OMPI_DIR=/opt/ompi
+    export SINGULARITY_OMPI_DIR=$OMPI_DIR
+    export SINGULARITYENV_APPEND_PATH=$OMPI_DIR/bin
+    export SINGULAIRTYENV_APPEND_LD_LIBRARY_PATH=$OMPI_DIR/lib
+
 %post
+    echo "Installing required packages..."
     apt-get update \
-        && apt-get -y install git ffmpeg libsm6 libxext6 python3-pip python3.7-dev \
-        && rm -rf /var/lib/apt/lists/*
-    mkdir /sources && cd /sources
-    git clone https://github.com/WPI-MMR/gym_solo.git
-    git clone https://github.com/WPI-MMR/learning_experiments.git
+      && apt-get install -y wget git bash gcc gfortran g++ make file ffmpeg \
+                            libsm6 libxext6 python3-pip python3.7-dev \
+                            libxcb-randr0 ibxcb-randr0-dev
+    rm -rf /var/lib/apt/lists/*
+
+    echo "Installing Open MPI"
+    export OMPI_DIR=/opt/ompi
+    export OMPI_VERSION=3.1.6
+    export OMPI_URL="https://download.open-mpi.org/release/open-mpi/v3.1/openmpi-$OMPI_VERSION.tar.bz2"
+    mkdir -p /tmp/ompi
+    mkdir -p /opt
+    # Download
+    cd /tmp/ompi && wget -O openmpi-$OMPI_VERSION.tar.bz2 $OMPI_URL && tar -xjf openmpi-$OMPI_VERSION.tar.bz2
+    # Compile and install
+    cd /tmp/ompi/openmpi-$OMPI_VERSION && ./configure --prefix=$OMPI_DIR && make install
+    # Set env variables so we can compile our application
+    export PATH=$OMPI_DIR/bin:$PATH
+    export LD_LIBRARY_PATH=$OMPI_DIR/lib:$LD_LIBRARY_PATH
+    export MANPATH=$OMPI_DIR/share/man:$MANPATH
+
+    # mkdir /sources && cd /sources
+    # git clone https://github.com/WPI-MMR/gym_solo.git
+    # cd gym_solo && git checkout goobta-rewards && cd ..
+
+    # git clone https://github.com/WPI-MMR/learning_experiments.git
+    # cd learning_experiments && git checkout goobta-experiments && cd ..
+
     python3.7 -m pip install -U pip wheel setuptools
-    python3.7 -m pip install -e gym_solo/
-    python3.7 -m pip install -e learning_experiments[gpu,wandb]
-    python3.7 -m pip install jupyterlab
+    # python3.7 -m pip install -e gym_solo/
+    # python3.7 -m pip install -e learning_experiments[gpu,wandb,mpi]
