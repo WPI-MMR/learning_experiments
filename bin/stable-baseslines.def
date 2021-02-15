@@ -12,7 +12,7 @@ From: nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
     apt-get update \
       && apt-get install -y wget git bash gcc gfortran g++ make file ffmpeg \
                             libsm6 libxext6 python3-pip python3.7-dev \
-                            libxcb-randr0 ibxcb-randr0-dev
+                            libxcb-randr0 libxcb-randr0-dev
     rm -rf /var/lib/apt/lists/*
 
     echo "Installing Open MPI"
@@ -30,13 +30,4 @@ From: nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
     export LD_LIBRARY_PATH=$OMPI_DIR/lib:$LD_LIBRARY_PATH
     export MANPATH=$OMPI_DIR/share/man:$MANPATH
 
-    # mkdir /sources && cd /sources
-    # git clone https://github.com/WPI-MMR/gym_solo.git
-    # cd gym_solo && git checkout goobta-rewards && cd ..
-
-    # git clone https://github.com/WPI-MMR/learning_experiments.git
-    # cd learning_experiments && git checkout goobta-experiments && cd ..
-
     python3.7 -m pip install -U pip wheel setuptools
-    # python3.7 -m pip install -e gym_solo/
-    # python3.7 -m pip install -e learning_experiments[gpu,wandb,mpi]
