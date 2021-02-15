@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.10.0
+#       jupytext_version: 1.10.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -13,8 +13,8 @@
 # ---
 
 # %% [markdown]
-# # Rotation Sweep on PPO2 w/ Solo8 v2 Vanilla
-# Try to limit how much rotation the network has access too. See if that has any major effect on the rewards
+# # PPO2 on Solo8 v2 Vanilla for Quadrupedal Standing
+# Try to get the solo to stand on 4 feet stabley
 
 # %% [markdown]
 # ## Ensure that Tensorflow is using the GPU
@@ -30,7 +30,8 @@ else:
 # ## Define Experiment Tags
 
 # %%
-TAGS = ['solov2vanilla', 'gpu', 'home_pos_task']
+TAGS = ['solov2vanilla', 'gpu', 'home_pos_split_task', 
+        'unnormalized_actions']
 
 # %% [markdown]
 # # Import required libraries
@@ -65,13 +66,15 @@ episode_length
 # Create a basic config
 
 # %%
-config = params.WandbConfigurableEnvParameters().parse()
+config = params.WandbParameters().parse()
 
-config.episodes = 800
+config.episodes = 12500
 config.episode_length = episode_length
 
+config.target_torso_height = 0.33698 # Found experimentally
+
 config.num_workers = 6
-config.eval_frequency = 10
+config.eval_frequency = 50
 config.eval_episodes = 3
 config.fps = 15
 
@@ -93,34 +96,30 @@ config
 # - Motor encoder current values
 #
 # **Reward**
-# - How upright the TorsoIMU is. Valued in $[-1, 1]$
+# - How flat the torso is
+# - Minimize the amount of control in the joints
+# - Minimize the amount of torso movement
+# - Keeping the torso at a given height
 #
 # **Termination Criteria**
 # - Terminate after $n$ timesteps
-#
-# Note that the autotrainer requires that the training environment be a `VecEnv` and the testing environment be a standard `gym.Env` for multi-processing.
-#
-# For us personally, we find that the easiest way to handle this is to create a Stable Baselines `VecEnv` generator (example can be found [here](https://stable-baselines.readthedocs.io/en/master/guide/examples.html#multiprocessing-unleashing-the-power-of-vectorized-environments)) and use that to generate both the training and testing environments.
-#
-# We also like to link our generator with our W&B config so that we can dynamically change the environments based from the web interface. 
-#
-# A full example can be seen below:
 
 # %%
-def make_env(length, max_motor_rot):
+def make_env(length, quad_standing_height):
     def _init():
         env_config = solo8v2vanilla.Solo8VanillaConfig()
-        env_config.max_motor_rotation = max_motor_rot
-        
         env = gym.make('solo8vanilla-v0', config=env_config, 
-                    normalize_actions=True)
+                       normalize_actions=False)
 
         env.obs_factory.register_observation(obs.TorsoIMU(env.robot))
         env.obs_factory.register_observation(obs.MotorEncoder(env.robot))
-
-        # env.reward_factory.register_reward(1, rewards.UprightReward(env.robot))
-        env.reward_factory.register_reward(1, rewards.HomePositionReward(env.robot))
         env.termination_factory.register_termination(terms.TimeBasedTermination(length))
+
+        env.reward_factory.register_reward(.2, rewards.SmallControlReward(env.robot))
+        env.reward_factory.register_reward(.2, rewards.HorizontalMoveSpeedReward(env.robot, 0))
+        env.reward_factory.register_reward(.3, rewards.FlatTorsoReward(env.robot))
+        env.reward_factory.register_reward(.3, rewards.TorsoHeightReward(env.robot, quad_standing_height))
+
         return env
     return _init
 
@@ -137,11 +136,12 @@ from stable_baselines.common.vec_env import VecNormalize
 # Create training & testing environments
 
 # %%
-train_env = SubprocVecEnv([make_env(config.episode_length, config.max_motor_rotation) 
-                        for _ in range(config.num_workers)])
-# train_env = VecNormalize(train_env, clip_reward = 1.)
+train_env = SubprocVecEnv([make_env(config.episode_length, 
+                                    config.target_torso_height) 
+                           for _ in range(config.num_workers)])
 
-test_env = make_env(config.episode_length, config.max_motor_rotation)()
+test_env = make_env(config.episode_length, 
+                    config.target_torso_height)()
 
 # %% [markdown]
 # ## Learning
@@ -149,6 +149,6 @@ test_env = make_env(config.episode_length, config.max_motor_rotation)()
 
 # %%
 model, config, run = auto_trainer.train(train_env, test_env, config, TAGS, 
-                                        log_freq=100, full_logging=False, run=run)
+                                        log_freq=1000, full_logging=False, run=run)
 
 # %%
