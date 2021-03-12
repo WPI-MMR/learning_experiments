@@ -1,7 +1,8 @@
 FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
 
 RUN apt-get update \
-    && apt-get -y install git ffmpeg libsm6 libxext6 python3-pip python3.7-dev \
+    && apt-get -y install git ffmpeg libsm6 libxext6 cmake libopenmpi-dev \
+       zlib1g-dev python3-pip python3.7-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir /sources && cd /sources \
@@ -9,7 +10,7 @@ RUN mkdir /sources && cd /sources \
     && git clone https://github.com/WPI-MMR/learning_experiments.git \
     && python3.7 -m pip install -U pip wheel setuptools \
     && python3.7 -m pip install -e gym_solo/ \
-    && python3.7 -m pip install -e learning_experiments[gpu,wandb] \
+    && python3.7 -m pip install -e learning_experiments[gpu,wandb,mpi] \
     && python3.7 -m pip install jupyterlab
 
 WORKDIR /sources/learning_experiments/experiments

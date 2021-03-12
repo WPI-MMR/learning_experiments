@@ -10,7 +10,6 @@ import stable_baselines
 
 PROJECT_NAME = 'solo-rl-experiments'
 ENTITY = 'wpi-mmr'
-_DEFAULT_RUN_NAME = 'run'
 
 SUPPORTED_ALGORITHMS = {
   'PPO2': stable_baselines.PPO2,
@@ -49,7 +48,6 @@ def get_synced_config(parameters, tags: List[Text]):
     entity=ENTITY,
     config=parameters,
     tags=tags,
-    sync_tensorboard=True,
   )
   config = run.config
 
@@ -84,17 +82,24 @@ def train(env: gym.Env, parameters, tags: List[Text],
 
   model_cls = SUPPORTED_ALGORITHMS[config.algorithm]
   model = model_cls(config.policy, env, 
-                    tensorboard_log=_WANDB and run.dir,
+                    tensorboard_log=run.dir if _WANDB else './logs',
                     full_tensorboard_log=full_logging,
                     verbose=1)
 
-  if _WANDB: wandb.tensorboard.monkeypatch._notify_tensorboard_logdir(
-    os.path.join(run.dir, '{}_1'.format(_DEFAULT_RUN_NAME)))
+  if _WANDB: 
+    default_run_name = config.algorithm
 
-  model.learn(config.episodes, tb_log_name=_DEFAULT_RUN_NAME,
-              log_interval=log_freq)
-  model.save(_WANDB and os.path.join(run.dir, 'model') or datetime.now().strftime(
-    '%m%d%H%M%S'))
+    wandb.tensorboard.patch(
+      save=True, 
+      root_logdir=os.path.join(run.dir, '{}_1'.format(default_run_name)))
+  else:
+    default_run_name = datetime.now().strftime('{}-%m%d%H%M%S'.format(
+      config.algorithm))
+
+  model.learn(total_timesteps=int(config.episodes * config.episode_length), 
+              tb_log_name=default_run_name, log_interval=log_freq)
+  model.save(_WANDB and os.path.join(run.dir, 'model') or \
+    datetime.now().strftime('%m%d%H%M%S'))
 
   if _WANDB: run.finish()
 

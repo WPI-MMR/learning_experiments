@@ -1,4 +1,7 @@
 # Solo 8 Learning Experiments
+![build](https://github.com/WPI-MMR/learning_experiments/workflows/build/badge.svg?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/WPI-MMR/learning_experiments/badge.svg?branch=master)](https://coveralls.io/github/WPI-MMR/learning_experiments?branch=master)
+
 Experiments to try and get the solo 8 up and standing.
 
 ## Docker Execution Directions
