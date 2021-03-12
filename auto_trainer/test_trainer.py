@@ -71,7 +71,7 @@ class TestAutoTrainer(unittest.TestCase):
 
     with mock.patch.dict(trainer.SUPPORTED_ALGORITHMS, 
                          {algo: mock_model_cls}, clear=True):
-      model, config, run = trainer.train(fake_env, parameters, None)
+      model, config, run = trainer.train(fake_env, fake_env, parameters, None)
 
       self.assertEqual(model, mock_model)
       self.assertEqual(config, parameters)
@@ -125,7 +125,7 @@ class TestAutoTrainer(unittest.TestCase):
     
       with mock.patch.dict(trainer.SUPPORTED_ALGORITHMS, 
                           {algo: mock_model_cls}, clear=True):
-        model, config, run = trainer.train(mock_env, parameters, None, 
+        model, config, run = trainer.train(mock_env, mock_env, parameters, None, 
                                           run=mock_run)
 
     _, kwargs = mock_model_cls.call_args
