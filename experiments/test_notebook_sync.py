@@ -1,4 +1,4 @@
-from logging import currentframe
+from typing import List, Text
 import unittest
 
 import filecmp
@@ -10,13 +10,21 @@ import subprocess
 import tempfile
 
 
+def _remove_preamble(lines: List[Text]) -> Text:
+  preamble_matcher = re.compile(r'# ---\s*$')
+  content = []
+
+  preamble_counter = 0
+  for line in lines:
+    if preamble_matcher.match(line):
+      preamble_counter += 1
+    if preamble_counter % 2 == 0:
+      content.append(line)
+  return content
+  
+
 class TestJupytextNotebookSync(unittest.TestCase):
   def test_script_content_equal(self):
-    # Running jupytext from the cli adds different metadata than running it from
-    # jupyter, so need to account for that.
-    format_pattern = r'#\s*formats: .*'
-    format_matcher = re.compile(format_pattern)
-
     fresh_tempdir = tempfile.TemporaryDirectory() 
     fresh_dir = pathlib.Path(fresh_tempdir.name)
 
@@ -39,15 +47,14 @@ class TestJupytextNotebookSync(unittest.TestCase):
                        '{} is the same, even though it shouldn\'t'.format(
                          cur_nb.stem))
 
-      # Delete the metatdata inplace
-      with fileinput.FileInput(new_script, inplace=1) as new_script_fh:
-        for line in new_script_fh:
-          if not format_matcher.match(line):
-            print(line, end='')
-      
-      self.assertTrue(filecmp.cmp(cur_script, new_script),
-                      '{} differs! Pls ensure that everything\'s synced'.format(
-                        cur_nb.stem))
+      with cur_script.open() as f:
+        curr_content = _remove_preamble(f.readlines())
+
+      with new_script.open() as f:
+        new_content = _remove_preamble(f.readlines())
+
+      self.assertListEqual(curr_content, new_content)
+
     fresh_tempdir.cleanup()
       
 

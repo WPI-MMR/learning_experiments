@@ -1,6 +1,8 @@
-from typing import List, Text
+from typing import Any, Callable, List, Text
 
 from datetime import datetime
+from stable_baselines.common import callbacks as sb_cb
+from stable_baselines.common.vec_env import VecEnv
 
 import gym
 import logging
@@ -10,7 +12,6 @@ import stable_baselines
 
 PROJECT_NAME = 'solo-rl-experiments'
 ENTITY = 'wpi-mmr'
-_DEFAULT_RUN_NAME = 'run'
 
 SUPPORTED_ALGORITHMS = {
   'PPO2': stable_baselines.PPO2,
@@ -49,19 +50,19 @@ def get_synced_config(parameters, tags: List[Text]):
     entity=ENTITY,
     config=parameters,
     tags=tags,
-    sync_tensorboard=True,
   )
   config = run.config
 
   return config, run
   
 
-def train(env: gym.Env, parameters, tags: List[Text], 
+def train(env: VecEnv, eval_env: gym.Env, parameters, tags: List[Text],
           full_logging: bool = False, log_freq: int = 100, run = None):
   """Train a model.
 
   Args:
-    env (gym.Env): Gym environment to train on.
+    env (VecEnv): Vectorized gym environment to train on.
+    eval_env (gym.Env): Gym environment to evaluate upon.
     parameters (Any W&B supported type): The hyperparameters to train with.
       Refer to W&B for all of the support types.
     tags (List[Text]): List of tags that describe this run. Doesn't do anything
@@ -75,7 +76,7 @@ def train(env: gym.Env, parameters, tags: List[Text],
       `get_synced_config`. Defaults to None.
 
   Returns:
-    [type]: [description]
+    The model, configuration used, and the wandb run object (if applicable)
   """
   if run:
     config = parameters
@@ -84,17 +85,35 @@ def train(env: gym.Env, parameters, tags: List[Text],
 
   model_cls = SUPPORTED_ALGORITHMS[config.algorithm]
   model = model_cls(config.policy, env, 
-                    tensorboard_log=_WANDB and run.dir,
+                    tensorboard_log=run.dir if _WANDB else './logs',
                     full_tensorboard_log=full_logging,
                     verbose=1)
 
-  if _WANDB: wandb.tensorboard.monkeypatch._notify_tensorboard_logdir(
-    os.path.join(run.dir, '{}_1'.format(_DEFAULT_RUN_NAME)))
+  callbacks = []
+  if _WANDB: 
+    from auto_trainer.callbacks import wandb as wb_cb
+    default_run_name = config.algorithm
+    wandb.tensorboard.patch(
+      save=True, 
+      root_logdir=os.path.join(run.dir, '{}_1'.format(default_run_name)))
 
-  model.learn(config.episodes, tb_log_name=_DEFAULT_RUN_NAME,
-              log_interval=log_freq)
-  model.save(_WANDB and os.path.join(run.dir, 'model') or datetime.now().strftime(
-    '%m%d%H%M%S'))
+    eval_cb_raw = wb_cb.WandbEvalAndRecord(
+      eval_env, config.eval_episodes, config.eval_render_freq, config.fps)
+    eval_cb = sb_cb.EveryNTimesteps(
+      n_steps=config.eval_frequency * config.episode_length, 
+      callback=eval_cb_raw)
+
+    callbacks.append(eval_cb)
+
+  else:
+    default_run_name = datetime.now().strftime('{}-%m%d%H%M%S'.format(
+      config.algorithm))
+
+  model.learn(total_timesteps=int(config.episodes * config.episode_length), 
+              tb_log_name=default_run_name, log_interval=log_freq,
+              callback=callbacks)
+  model.save(_WANDB and os.path.join(run.dir, 'model') or \
+    datetime.now().strftime('%m%d%H%M%S'))
 
   if _WANDB: run.finish()
 

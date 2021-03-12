@@ -7,3 +7,5 @@
 
 *.pyc
 *.egg-info/
+
+experiments/notebooks/**/logs/

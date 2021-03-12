@@ -54,9 +54,10 @@ class TestAutoTrainer(unittest.TestCase):
     algo = 'test_ago'
     policy = 'test_policy'
     episodes = 69
+    epi_length = 10
 
     parameters = mock.MagicMock(algorithm=algo, policy=policy, 
-                                episodes=episodes)
+                                episodes=episodes, episode_length=epi_length)
     fake_env = mock.MagicMock()
 
     mock_learn = mock.MagicMock()
@@ -70,7 +71,7 @@ class TestAutoTrainer(unittest.TestCase):
 
     with mock.patch.dict(trainer.SUPPORTED_ALGORITHMS, 
                          {algo: mock_model_cls}, clear=True):
-      model, config, run = trainer.train(fake_env, parameters, None)
+      model, config, run = trainer.train(fake_env, fake_env, parameters, None)
 
       self.assertEqual(model, mock_model)
       self.assertEqual(config, parameters)
@@ -81,8 +82,9 @@ class TestAutoTrainer(unittest.TestCase):
       self.assertTupleEqual(args, (policy, fake_env))
 
       mock_learn.assert_called_once()
-      mock_learn_args, _ = mock_learn.call_args
-      self.assertTupleEqual(mock_learn_args, (episodes, ))
+      _, mock_learn_kwargs = mock_learn.call_args
+      self.assertEqual(mock_learn_kwargs['total_timesteps'], 
+                       episodes * epi_length)
 
       mock_save.assert_called_once()
       mock_save_args, _ = mock_save.call_args
@@ -123,7 +125,7 @@ class TestAutoTrainer(unittest.TestCase):
     
       with mock.patch.dict(trainer.SUPPORTED_ALGORITHMS, 
                           {algo: mock_model_cls}, clear=True):
-        model, config, run = trainer.train(mock_env, parameters, None, 
+        model, config, run = trainer.train(mock_env, mock_env, parameters, None, 
                                           run=mock_run)
 
     _, kwargs = mock_model_cls.call_args
