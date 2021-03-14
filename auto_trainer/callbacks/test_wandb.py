@@ -43,7 +43,7 @@ class TestWandbEvalAndRecord(unittest.TestCase):
 
     self.cb.n_calls = 1
     self.cb.num_timesteps = self.cb.n_calls * 4
-    self.assertTrue(self.cb._on_step())
+    self.assertTrue(self.cb._on_step(plot=False))
 
     self.assertEqual(
       len(self.mock_env.step.call_args_list), 10)

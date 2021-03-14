@@ -33,9 +33,13 @@ class WandbEvalAndRecord(callbacks.BaseCallback):
     self.render_freq = render_freq
     self.fps = fps
 
-  def _on_step(self) -> bool:
+  def _on_step(self, plot=True) -> bool:
     """Evaluate the current policy for self.eval_episodes, then take a render
     and report all stats to W&B
+
+    Args:
+      plot: Enable matplotlib plotting behavior. Should be set to True unless 
+        testing. Defaults to True.
 
     Returns:
       True, as per API requirements
@@ -69,11 +73,12 @@ class WandbEvalAndRecord(callbacks.BaseCallback):
     observes = np.array(obses).flatten()
 
     rewards = np.array(rewards)
-    plt.clf()
-    plt.plot(np.arange(len(rewards)), rewards)
-    plt.xlabel('timesteps')
-    plt.ylabel('rewards')
-    plt.title('Timestep {}'.format(self.num_timesteps))
+    if plot:
+      plt.clf()
+      plt.plot(np.arange(len(rewards)), rewards)
+      plt.xlabel('timesteps')
+      plt.ylabel('rewards')
+      plt.title('Timestep {}'.format(self.num_timesteps))
 
     wandb.log({
       'test_reward_mean': mean_rewards, 
@@ -84,7 +89,7 @@ class WandbEvalAndRecord(callbacks.BaseCallback):
       'reward_distribution': wandb.Histogram(rewards),
       'action_distribution': wandb.Histogram(actions),
       'observation_distribution': wandb.Histogram(observes),
-      'reward_vs_time': wandb.Image(plt),
+      'reward_vs_time': plot and wandb.Image(plt),
     }, step=self.num_timesteps)
 
     return True
