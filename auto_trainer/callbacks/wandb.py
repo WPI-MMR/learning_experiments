@@ -2,6 +2,7 @@ from stable_baselines.common.evaluation import evaluate_policy
 from stable_baselines.common.vec_env import VecEnv
 from stable_baselines.common import callbacks
 
+import matplotlib.pyplot as plt
 import numpy as np
 import wandb
 import gym
@@ -45,6 +46,7 @@ class WandbEvalAndRecord(callbacks.BaseCallback):
     images = []
     rewards = []
     actions = []
+    obses = []
     step_cnt = 0
     done, state = False, None
     obs = self.env.reset()
@@ -57,13 +59,21 @@ class WandbEvalAndRecord(callbacks.BaseCallback):
 
       rewards.append(reward)
       actions.append(action)
+      obses.append(obs)
       step_cnt += 1
 
     render = np.array(images)
     render = np.transpose(render, (0, 3, 1, 2))
 
-    rewards = np.array(rewards)
     actions = np.array(actions).flatten()
+    observes = np.array(obses).flatten()
+
+    rewards = np.array(rewards)
+    plt.clf()
+    plt.plot(np.arange(len(rewards)), rewards)
+    plt.xlabel('timesteps')
+    plt.ylabel('rewards')
+    plt.title('Timestep {}'.format(self.num_timesteps))
 
     wandb.log({
       'test_reward_mean': mean_rewards, 
@@ -72,7 +82,9 @@ class WandbEvalAndRecord(callbacks.BaseCallback):
       'global_step': self.num_timesteps,
       'evaluations': self.n_calls,
       'reward_distribution': wandb.Histogram(rewards),
-      'action_distribution': wandb.Histogram(actions)
+      'action_distribution': wandb.Histogram(actions),
+      'observation_distribution': wandb.Histogram(observes),
+      'reward_vs_time': wandb.Image(plt),
     }, step=self.num_timesteps)
 
     return True

@@ -13,7 +13,12 @@ class BaseParameters:
   def parse(self):
     parser = argparse.ArgumentParser()
     parser = self.add_args(parser)
-    args, _ = parser.parse_known_args()
+    args, unknown = parser.parse_known_args()
+
+    for arg in unknown:
+      if arg.startswith(("-", "--")):
+          parser.add_argument(arg.split('=')[0])
+    args = parser.parse_args()
     return args
 
   def add_args(self, parser: argparse.ArgumentParser):
