@@ -1,0 +1,19 @@
+Bootstrap: docker
+From: nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
+
+%post
+    echo "Installing required packages..."
+    apt-get update \
+      && apt-get install -y wget git bash gcc gfortran g++ make file ffmpeg \
+                            libsm6 libxext6 python3-pip python3.7-dev \
+                            libxcb-randr0 libxcb-randr0-dev
+    rm -rf /var/lib/apt/lists/*
+    python3.7 -m pip install -U pip wheel setuptools
+
+%labels
+  Author gr-qb20@wpi.edu
+
+%help
+  A base environment to install gym_solo dependencies ontop of. It is 
+  recommended that you install as a sandbox first, install the required 
+  deps, and build an image that you ship off to your supercomputer.
