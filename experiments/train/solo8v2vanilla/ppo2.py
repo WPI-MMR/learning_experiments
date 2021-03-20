@@ -30,7 +30,7 @@ else:
 # ## Define Experiment Tags
 
 # %%
-TAGS = ['solov2vanilla', 'gpu', 'home_pos_task', 
+TAGS = ['solov2vanilla', 'gpu', 'standing_task', 
         'unnormalized_actions']
 
 # %% [markdown]
@@ -68,11 +68,11 @@ episode_length
 # %%
 config = params.WandbParameters().parse()
 
-config.episodes = 800
+config.episodes = 12500
 config.episode_length = episode_length
 
 config.num_workers = 6
-config.eval_frequency = 10
+config.eval_frequency = 50
 config.eval_episodes = 3
 config.fps = 15
 
@@ -117,8 +117,7 @@ def make_env(length):
         env.obs_factory.register_observation(obs.TorsoIMU(env.robot))
         env.obs_factory.register_observation(obs.MotorEncoder(env.robot))
 
-        # env.reward_factory.register_reward(1, rewards.UprightReward(env.robot))
-        env.reward_factory.register_reward(1, rewards.HomePositionReward(env.robot))
+        env.reward_factory.register_reward(1, rewards.UprightReward(env.robot))
         env.termination_factory.register_termination(terms.TimeBasedTermination(length))
         return env
     return _init
@@ -148,6 +147,6 @@ test_env = make_env(config.episode_length)()
 
 # %%
 model, config, run = auto_trainer.train(train_env, test_env, config, TAGS, 
-                                        log_freq=100, full_logging=False, run=run)
+                                        log_freq=1000, full_logging=False, run=run)
 
 # %%

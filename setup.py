@@ -13,7 +13,8 @@ setup(name='auto_trainer',
       extras_require={
         'cpu': ['tensorflow>=1.15.0,<2'],
         'gpu': ['tensorflow-gpu==1.15.4'],
-        'wandb': ['wandb', 'moviepy', 'imageio'],
-        'mpi': ['stable-baselines[mpi]']
+        'wandb': ['wandb', 'moviepy', 'imageio', 'plotly'],
+        'mpi': ['stable-baselines[mpi]'],
+        'gym': ['pyvirtualdisplay', 'PyOpenGL', 'PyOpenGL-accelerate']
       }
 )

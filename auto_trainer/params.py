@@ -1,7 +1,8 @@
 from auto_trainer import trainer
-import argparse
-
 from typing import List
+
+import numpy as np
+import argparse
 
 
 PROJECT_NAME = "solo-rl-experiments"
@@ -12,7 +13,12 @@ class BaseParameters:
   def parse(self):
     parser = argparse.ArgumentParser()
     parser = self.add_args(parser)
-    args, _ = parser.parse_known_args()
+    args, unknown = parser.parse_known_args()
+
+    for arg in unknown:
+      if arg.startswith(("-", "--")):
+          parser.add_argument(arg.split('=')[0])
+    args = parser.parse_args()
     return args
 
   def add_args(self, parser: argparse.ArgumentParser):
@@ -43,5 +49,14 @@ class WandbParameters(BaseParameters):
                         'steps should a render be taken of the env')
     parser.add_argument('--fps', default=10, help='fps to render the sim '
                                                   'images')
+
+    return parser
+
+class WandbConfigurableEnvParameters(WandbParameters):
+  def add_args(self, parser: argparse.ArgumentParser):
+    parser = super().add_args(parser)
+
+    parser.add_argument('--max_motor_rotation', default=2 * np.pi,
+                        help='maximum motor rotation')
 
     return parser
