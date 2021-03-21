@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages    
 
-
 setup(name='auto_trainer', 
       version='0.0.1',
       python_requires='~=3.7',
